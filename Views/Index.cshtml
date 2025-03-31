@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "XML TreeView Example";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+
+    <h1>XML Data</h1>
+
+    <pre>
+        @Html.Raw(ViewData["XmlData"])
+    </pre>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+﻿@model XML_editor.Models.XElementModel
+@using Microsoft.AspNetCore.Html
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<h2>XML Hierarchy View</h2>
+<style>
+    .xml-node, .xml-node ul {
+        list-style-type: none;
+    }
+
+    .nested {
+        display: none;
+        margin-left: 20px;
+    }
+
+    .active {
+        display: block;
+    }
+
+    .node-toggle {
+        user-select: none;
+        color: #007bff;
+    }
+</style>
+<div>
+    @RenderElement(Model)
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#xml-container').on('click', '.node-toggle', function(e){
+            $(this).siblings('.nested').toggleClass('active');
+
+            // Switch arrow symbols for visual indication
+            if ($(this).text().startsWith('▾')) {
+                $(this).text($(this).text().replace('▾', '▸'));
+            } else {
+                $(this).text($(this).text().replace('▸', '▾'));
+            }
+            e.stopPropagation();
+        });
+    });
+</script>
+@functions {
+    public IHtmlContent RenderElement(XML_editor.Models.XElementModel element)
+    {
+        var ul = new TagBuilder("ul");
+        var li = new TagBuilder("li");
+        li.InnerHtml.Append(element.Name);
+
+        if (element.Children.Any())
+        {
+            foreach (var child in element.Children)
+            {
+                li.InnerHtml.AppendHtml(RenderElement(child));
+            }
+        }
+
+        ul.InnerHtml.AppendHtml(li);
+
+        var writer = new System.IO.StringWriter();
+        ul.WriteTo(writer, System.Text.Encodings.Web.HtmlEncoder.Default);
+        return new HtmlString(writer.ToString());
+    }
+}

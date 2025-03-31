@@ -1,0 +1,1471 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <fsmSettings>
+    <add key="EmailFromAddress" value="notifications@check-point.com.au" />
+  </fsmSettings>
+  <applicationType name="NotBuildingPermit" initialStatus="New Application Received" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="Quotation" IdleDays="15">
+      <transition input="Issue Fee Proposal" next="Fee Proposal Issued" selectAttachment="false" />
+    </state>
+    <state name="Fee Proposal Issued" IdleDays="15">
+      <transition input="Fee Proposal Accepted" next="Fee Proposal Accepted" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="Fee Acceptance" />
+        </actions>
+      </transition>
+      <transition input="Assign App" next="Job Assigned" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="SignOffStaff" template="Start Job" isReviewable="true" />
+        </actions>
+      </transition>
+      <transition input="Unsuccessful" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Fee Proposal Accepted" IdleDays="15">
+      <transition input="Assign App" next="Job Assigned" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="SignOffStaff" template="Start Job" isReviewable="true" />
+        </actions>
+      </transition>
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="New Application Received" IdleDays="15">
+      <transition input="Notify Council" next="Council Notified" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Council" subject="Please see attached Section 80 notification" template="Notify Council.htm" isReviewable="true">
+            <letters>
+              <template name="Section 80.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders />
+      </transition>
+      <transition input="Issue Fee Proposal" next="Fee Proposal Issued" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Job Assigned" IdleDays="3">
+      <transition input="Notify Council" next="Council Notified" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Council" subject="Please see attached Section 80 notification" template="Notify Council.htm" isReviewable="true">
+            <letters>
+              <template name="Section 80.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders />
+      </transition>
+    </state>
+    <state name="Council Notified" IdleDays="3">
+      <transition input="BP FI Required" next="BP FI Required" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="QA BP" next="QA BP" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="BP QA" />
+        </actions>
+      </transition>
+      <transition input="Submit to BAMS" next="Submitted To BAMS" selectAttachment="true" />
+    </state>
+    <state name="BP FI Required" IdleDays="60">
+      <transition input="BP FI Required" next="BP FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm" />
+        </actions>
+      </transition>
+      <transition input="BP FI Receive" next="BP FI Receive" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="vicdomestic@check-point" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="BP Further Info Received" />
+        </actions>
+      </transition>
+    </state>
+    <state name="BP FI Receive" IdleDays="3">
+      <transition input="BP FI Required" next="BP FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="QA BP" next="QA BP" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="BP QA" />
+        </actions>
+      </transition>
+      <transition input="Submit to BAMS" next="Submitted To BAMS" selectAttachment="true" />
+    </state>
+    <state name="QA BP" IdleDays="330">
+      <transition input="Submit to BAMS" next="Submitted To BAMS" selectAttachment="true" />
+      <transition input="BP FI Required" next="BP FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="Fix errors" next="QA BP" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="SignOffStaff" template="BP To Be Fixed" />
+        </actions>
+      </transition>
+      <transition input="Issue Permit" next="Permit Issued" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant,Builder,Owner,Council" subject="Building Permit for [%PropertyAddress%] is issued" template="BPermit Issued.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="task" addressee="vicdomestic@check-point" template="Section 30" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Submitted To BAMS" IdleDays="330">
+      <transition input="Issue Permit" next="Permit Issued" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant,Builder,Owner,Council" subject="Building Permit for [%PropertyAddress%] is issued" template="BPermit Issued.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="task" addressee="vicdomestic@check-point" template="Section 30" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Permit Issued" IdleDays="330">
+      <transition input="Variation Request" next="Variation Request" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="Variation Request" />
+        </actions>
+      </transition>
+      <transition input="Final Stage" next="OP/CFI Stage" selectAttachment="false" />
+    </state>
+    <state name="Variation Request" IdleDays="330">
+      <transition input="BP VAR FI Required" next="BP VAR FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="QA BP Var" next="QA BP VAR" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="VAR QA" />
+        </actions>
+      </transition>
+      <transition input="Submit BP VAR to BAMS" next="BP VAR Submitted To BAMS" selectAttachment="false" />
+    </state>
+    <state name="BP VAR FI Required" IdleDays="60">
+      <transition input="BP VAR FI Received" next="BP VAR FI Received" selectAttachment="false" />
+      <transition input="BP VAR FI Required" next="BP VAR FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="RFI Receive" next="BP VAR FI Received" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="vicdomestic@check-point.com.au" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm" />
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="VAR FI" />
+        </actions>
+      </transition>
+    </state>
+    <state name="BP VAR FI Received" IdleDays="3">
+      <transition input="BP VAR FI Required" next="BP VAR FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="QA BP Var" next="QA BP VAR" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="VAR QA" />
+        </actions>
+      </transition>
+      <transition input="Submit BP VAR to BAMS" next="BP VAR Submitted To BAMS" selectAttachment="false" />
+    </state>
+    <state name="QA BP VAR" IdleDays="330">
+      <transition input="Submit BP VAR to BAMS" next="BP VAR Submitted To BAMS" selectAttachment="false" />
+      <transition input="BP VAR FI Required" next="BP VAR FI Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Please see attached Request for More Information Content, which we require from your end" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="Fix errors" next="QA BP" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="SignOffStaff" template="BP To Be Fixed" />
+        </actions>
+      </transition>
+      <transition input="Issue Permit Variation" next="BP Variation Issued" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant,Builder,Council" subject="Building Permit for [%PropertyAddress%] is issued" template="Section 73.htm">
+            <letters>
+              <template name="Form 2.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="Section 73 VAR" />
+        </actions>
+      </transition>
+    </state>
+    <state name="BP VAR Submitted To BAMS" IdleDays="330">
+      <transition input="Issue Permit Variation" next="BP Variation Issued" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant,Builder,Council" subject="Building Permit for [%PropertyAddress%] is issued" template="Section 73.htm">
+            <letters>
+              <template name="Form 2.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="Section 73 VAR" />
+        </actions>
+      </transition>
+    </state>
+    <state name="BP Variation Issued" IdleDays="330">
+      <transition input="Variation Request" next="Variation Request" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" />
+          <action type="email" addressee="vicdomestic@check-point.com.au" />
+        </actions>
+      </transition>
+      <transition input="Final Stage" next="OP/CFI Stage" selectAttachment="false" />
+    </state>
+    <state name="OP/CFI Stage" IdleDays="330">
+      <transition input="OP Further Info" next="OP Further Info Request" selectAttachment="false" />
+      <transition input="Issue OP" next="Complete" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Council" subject="Lodgement of further information for [%PropertyAddress%]" template="Occu Permit Issued - Council.htm">
+            <letters>
+              <template name="Section 73 - OP Notification.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="Issue CFI" next="Complete" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Council" subject="Lodgement of further information for [%PropertyAddress%]" template="CFI Issued - Council.htm">
+            <letters>
+              <template name="Section 73 - CFI Notification.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+    </state>
+    <state name="OP Further Info Request" IdleDays="330">
+      <transition input="OP Further Info Received" next="OP Further Info Received" selectAttachment="false" />
+    </state>
+    <state name="OP Further Info Received" IdleDays="330">
+      <transition input="Issue OP" next="Complete" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Council" subject="Lodgement of further information for [%PropertyAddress%]" template="Occu Permit Issued - Council.htm">
+            <letters>
+              <template name="Section 73 - OP Notification.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+      <transition input="Issue CFI" next="Complete" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Council" subject="Lodgement of further information for [%PropertyAddress%]" template="CFI Issued - Council.htm">
+            <letters>
+              <template name="Section 73 - CFI Notification.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+    </state>
+    <state name="On-Hold" IdleDays="" />
+    <state name="Complete" IdleDays="" />
+    <state name="Cancelled" IdleDays="" />
+    <state name="Auto Reminders" IdleDays="15">
+      <transition input="New App" next="New App Notify" selectAttachment="false" />
+    </state>
+    <state name="Auto Notification" IdleDays="15">
+      <transition input="Applied For OP" next="Auto Notification" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="Applied For OP" />
+        </actions>
+      </transition>
+      <transition input="Applied For Amendment" next="Auto Notification" selectAttachment="false">
+        <actions>
+          <action type="task" addressee="vicdomestic@check-point.com.au" template="Applied For Amendment" />
+        </actions>
+      </transition>
+    </state>
+    <state name="New" IdleDays="15">
+      <transition input="Notify Council" next="Council Notified" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Council" subject="Please see attached Section 80 notification" template="Notify Council.htm" isReviewable="true">
+            <letters>
+              <template name="Section 80.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders />
+      </transition>
+      <transition input="Issue Fee Proposal" next="Fee Proposal Issued" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+  </applicationType>
+  <applicationType name="QLDBuildingPermit" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="Quotation" IdleDays="1">
+      <transition input="Quote Issued" next="Quote Issued" selectAttachment="false" />
+      <transition input="Unsuccessful Quote" next="Unsuccessful Quote" selectAttachment="false" />
+    </state>
+    <state name="Awaiting Documentation To Quote" IdleDays="">
+      <transition input="Quotation" next="Quotation" selectAttachment="false" />
+      <transition input="Unsuccessful Quote" next="Unsuccessful Quote" selectAttachment="false" />
+      <transition input="New" next="New" selectAttachment="false" />
+    </state>
+    <state name="Quote Issued" IdleDays="2">
+      <transition input="Engaged (Form 56)" next="Engaged (Form 56)" selectAttachment="false">
+        <actions>
+          <action type="AutoAcceptQuotation" addressee="" />
+        </actions>
+      </transition>
+      <transition input="Quote Followed Up (First)" next="Quote Followed Up (First)" selectAttachment="false" />
+      <transition input="Unsuccessful Quote" next="Unsuccessful Quote" selectAttachment="false" />
+    </state>
+    <state name="Quote Followed Up (First)" IdleDays="7">
+      <transition input="Engaged (Form 56)" next="Engaged (Form 56)" selectAttachment="false">
+        <actions>
+          <action type="AutoAcceptQuotation" addressee="" />
+        </actions>
+      </transition>
+      <transition input="Quote Followed Up (Second)" next="Quote Followed Up (Second)" selectAttachment="false" />
+      <transition input="Quote Pending Finalisation" next="Quote Pending Finalisation" selectAttachment="false" />
+      <transition input="Unsuccessful Quote" next="Unsuccessful Quote" selectAttachment="false" />
+    </state>
+    <state name="Quote Followed Up (Second)" IdleDays="14">
+      <transition input="Engaged (Form 56)" next="Engaged (Form 56)" selectAttachment="false">
+        <actions>
+          <action type="AutoAcceptQuotation" addressee="" />
+        </actions>
+      </transition>
+      <transition input="Quote Pending Finalisation" next="Quote Pending Finalisation" selectAttachment="false" />
+      <transition input="Unsuccessful Quote" next="Unsuccessful Quote" selectAttachment="false" />
+    </state>
+    <state name="Quote Pending Finalisation" IdleDays="14">
+      <transition input="Engaged (Form 56)" next="Engaged (Form 56)" selectAttachment="false">
+        <actions>
+          <action type="AutoAcceptQuotation" addressee="" />
+        </actions>
+      </transition>
+      <transition input="Unsuccessful Quote" next="Unsuccessful Quote" selectAttachment="false" />
+    </state>
+    <state name="New" IdleDays="2">
+      <transition input="Engaged (Form 56)" next="Engaged (Form 56)" selectAttachment="false">
+        <reminders>
+          <reminder content="Please check if all information is correct" />
+        </reminders>
+      </transition>
+      <transition input="Planning Preliminary Assessment Check" next="Planning Preliminary Assessment Check" selectAttachment="false">
+        <reminders>
+          <reminder content="Please check that the invoice has been sent" />
+        </reminders>
+      </transition>
+      <transition input="Planning Feasibility Assessment Check" next="Planning Feasibility Assessment Check" selectAttachment="false">
+        <reminders>
+          <reminder content="Please check that the invoice has been sent" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Engaged (Form 56)" IdleDays="3">
+      <transition input="Certification Assessment" next="Certification Assessment" selectAttachment="false">
+        <reminders>
+          <reminder content="Please check that the invoice has been sent" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Planning Preliminary Assessment Check" IdleDays="1">
+      <transition input="Engaged (Form 56)" next="Engaged (Form 56)" selectAttachment="false" />
+    </state>
+    <state name="Planning Feasibility Assessment Check" IdleDays="1">
+      <transition input="Quote Followed Up" next="Quote Followed Up (First)" selectAttachment="false" />
+      <transition input="Complete" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Certification Assessment" IdleDays="2">
+      <transition input="Relax/Council Application Required" next="Relax/Council Application" selectAttachment="false" />
+      <transition input="Request For More Info (RFI)" next="Request For More Info (RFI)" selectAttachment="false" />
+      <transition input="Building Approval" next="Building Approval" selectAttachment="false" />
+      <transition input="Awaiting Payment" next="Awaiting Payment" selectAttachment="false" />
+    </state>
+    <state name="Awaiting Payment" IdleDays="2">
+      <transition input="Relax/Council Application" next="Relax/Council Application" selectAttachment="false" />
+    </state>
+    <state name="Relax/Council Application" IdleDays="15">
+      <transition input="Request For More Info (RFI)" next="Request For More Info (RFI)" selectAttachment="false" />
+      <transition input="Certification Assessment" next="Certification Assessment" selectAttachment="false">
+        <reminders>
+          <reminder content="Please check that the invoice has been sent" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Request For More Info (RFI)" IdleDays="60">
+      <transition input="Relax/Council Application Required" next="Relax/Council Application" selectAttachment="false" />
+      <transition input="Certification Assessment" next="Certification Assessment" selectAttachment="false">
+        <reminders>
+          <reminder content="Please check that the invoice has been sent" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Building Approval" IdleDays="240">
+      <transition input="Pending Inspection Booking" next="Pending Inspection Booking" selectAttachment="false" />
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Slab Inspection Booked" next="Slab Inspection Booked" selectAttachment="false" />
+      <transition input="Site Set Out Booked" next="Site Set Out Booked" selectAttachment="false" />
+      <transition input="Frame Inspection Booked" next="Frame Inspection Booked" selectAttachment="false" />
+      <transition input="Bondbeam Inspection Booked" next="Bondbeam Inspection Booked" selectAttachment="false" />
+      <transition input="Final Inspection Booked" next="Final Inspection Booked" selectAttachment="false" />
+      <transition input="Footing Inspection Booked" next="Footing Inspection Booked" selectAttachment="false" />
+      <transition input="Suspended Slab Inspection Booked" next="Suspended Slab Inspection Booked" selectAttachment="false" />
+      <transition input="Amended Plans" next="Amended Plans" selectAttachment="false" />
+      <transition input="Issue Form 57" next="Form 57 Issued" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Pending Inspection Booking" IdleDays="1">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Slab Inspection Booked" next="Slab Inspection Booked" selectAttachment="false" />
+      <transition input="Site Set Out Booked" next="Site Set Out Booked" selectAttachment="false" />
+      <transition input="Frame Inspection Booked" next="Frame Inspection Booked" selectAttachment="false" />
+      <transition input="Bondbeam Inspection Booked" next="Bondbeam Inspection Booked" selectAttachment="false" />
+      <transition input="Final Inspection Booked" next="Final Inspection Booked" selectAttachment="false" />
+      <transition input="Footing Inspection Booked" next="Footing Inspection Booked" selectAttachment="false" />
+      <transition input="Suspended Slab Inspection Booked" next="Suspended Slab Inspection Booked" selectAttachment="false" />
+      <transition input="Amended Plans" next="Amended Plans" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Site Set Out Booked" IdleDays="5">
+      <transition input="Site Set Out Booked" next="Site Set Out Booked" selectAttachment="false" />
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Pending Certificates" next="Pending Outstanding Items/Pending Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Suspended Slab Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Pending Certificates" next="Pending Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Footing Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Frame Inspection Booked" next="Frame Inspection Booked" selectAttachment="false" />
+      <transition input="Bondbeam Inspection Booked" next="Bondbeam Inspection Booked" selectAttachment="false" />
+      <transition input="Final Inspection Booked" next="Final Inspection Booked" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Frame Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Final Inspection Booked" next="Final Inspection Booked" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Final Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Final Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Final Inspection Booked" next="Final Inspection Booked" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Complete" next="Complete" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Amended Plans" IdleDays="3">
+      <transition input="Relax/Council Application Required" next="Relax/Council Application" selectAttachment="false" />
+      <transition input="Building Approval" next="Building Approval" selectAttachment="false" />
+    </state>
+    <state name="Slab Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Bondbeam Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Inspection Booked" IdleDays="5">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Re-inspection Required" IdleDays="2">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Complete" next="Complete" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Pending Outstanding Items/Certificates" IdleDays="10">
+      <transition input="Inspection Booked" next="Inspection Booked" selectAttachment="false" />
+      <transition input="Re-inspection Required" next="Re-inspection Required" selectAttachment="false" />
+      <transition input="Pending Outstanding Items/Certificates" next="Pending Outstanding Items/Certificates" selectAttachment="false" />
+      <transition input="Complete" next="Complete" selectAttachment="false" />
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Complete" IdleDays="" />
+    <state name="Discontinued (Afterwards Form 22)" IdleDays="" />
+    <state name="Form 57 Issued" IdleDays="" />
+    <state name="First Extension of Time" IdleDays="" />
+    <state name="Second Extension of Time" IdleDays="" />
+    <state name="Third Extension of Time" IdleDays="" />
+    <state name="On-Hold" IdleDays="" />
+    <state name="Lapsed" IdleDays="" />
+    <state name="Amendment" IdleDays="" />
+    <state name="Cancelled" IdleDays="" />
+    <state name="Building Permit Refused" IdleDays="" />
+  </applicationType>
+  <applicationType name="SABuilding" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="Quotation" IdleDays="15">
+      <transition input="Quote Issued" next="Quote Issued" selectAttachment="false" />
+    </state>
+    <state name="Quote Issued" IdleDays="15">
+      <transition input="Lodged" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Check all required info has been provided before lodge the application" />
+          <reminder content="Preview application form to ensure all details are correct" />
+        </reminders>
+      </transition>
+      <transition input="Unsuccessful" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Pre App" IdleDays="15">
+      <transition input="Lodge" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Lodge pre app application as a full building permit application" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="New" IdleDays="15">
+      <transition input="Lodge" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Check all required info has been provided before lodge the application" />
+          <reminder content="Preview application form to ensure all details are correct" />
+        </reminders>
+      </transition>
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Lodged" IdleDays="5">
+      <transition input="Assign App" next="Assigned" selectAttachment="false">
+        <reminders>
+          <reminder content="Assigned the application to a staff" />
+        </reminders>
+      </transition>
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Assigned" IdleDays="3">
+      <transition input="Notify Council" next="Council Notified" selectAttachment="false">
+        <reminders />
+      </transition>
+    </state>
+    <state name="Council Notified" IdleDays="3">
+      <transition input="Request More Info" next="More Info Required" selectAttachment="false">
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve Permit" next="Permit Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview building permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="More Info Required" IdleDays="60">
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false" />
+      <transition input="Repeat More Info" next="More Info Required" selectAttachment="false">
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve Permit" next="Permit Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview building permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="3">
+      <transition input="Request More Info" next="More Info Required" selectAttachment="false">
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve Permit" next="Permit Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview building permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Permit Approved" IdleDays="330">
+      <transition input="Issue CFI" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CFI to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Issue Occu Permit" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview Occu permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Complete" IdleDays="" />
+    <state name="Cancelled" IdleDays="" />
+    <state name="Permit Lapsed" IdleDays="" />
+  </applicationType>
+  <applicationType name="WABuilding" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="Quotation" IdleDays="15">
+      <transition input="Quote Issued" next="Quote Issued" selectAttachment="false" />
+    </state>
+    <state name="Quote Issued" IdleDays="15">
+      <transition input="Lodged" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Check all required info has been provided before lodge the application" />
+          <reminder content="Preview application form to ensure all details are correct" />
+        </reminders>
+      </transition>
+      <transition input="Unsuccessful" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Pre App" IdleDays="15">
+      <transition input="Lodge" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Lodge pre app application as a full building permit application" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="New" IdleDays="15">
+      <transition input="Lodge" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Check all required info has been provided before lodge the application" />
+          <reminder content="Preview application form to ensure all details are correct" />
+        </reminders>
+      </transition>
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Lodged" IdleDays="5">
+      <transition input="Assign App" next="Assigned" selectAttachment="false">
+        <reminders>
+          <reminder content="Assigned the application to a staff" />
+        </reminders>
+      </transition>
+      <transition input="Cancelled" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Assigned" IdleDays="3">
+      <transition input="Notify Council" next="Council Notified" selectAttachment="false">
+        <reminders />
+      </transition>
+    </state>
+    <state name="Council Notified" IdleDays="3">
+      <transition input="Request More Info" next="More Info Required" selectAttachment="false">
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve Permit" next="Permit Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview building permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="More Info Required" IdleDays="60">
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false" />
+      <transition input="Repeat More Info" next="More Info Required" selectAttachment="false">
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve Permit" next="Permit Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview building permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="3">
+      <transition input="Request More Info" next="More Info Required" selectAttachment="false">
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve Permit" next="Permit Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview building permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Permit Approved" IdleDays="330">
+      <transition input="Issue CFI" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CFI to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Issue Occu Permit" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview Occu permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Complete" IdleDays="" />
+    <state name="Cancelled" IdleDays="" />
+    <state name="Permit Lapsed" IdleDays="" />
+  </applicationType>
+  <applicationType name="NSWBuilding" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="Quotation" IdleDays="15">
+      <transition input="Quote Issued" next="Quote Issued" selectAttachment="false" />
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+    </state>
+    <state name="Quote Issued" IdleDays="15">
+      <transition input="Accept" next="Lodged" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Application [%AppNo%] Lodged" template="App Lodged.htm">
+            <letters>
+              <template name="Notice application for a CDC.docx" saveToRelatedDoc="true" securePDF="false" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Check all required info has been provided before lodge the application" />
+          <reminder content="Preview application form to ensure all details are correct" />
+        </reminders>
+      </transition>
+      <transition input="Unsuccessful" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Pre App" IdleDays="15">
+      <transition input="Lodge" next="Lodged" selectAttachment="false">
+        <reminders>
+          <reminder content="Lodge pre app application as a full building permit application" />
+        </reminders>
+      </transition>
+      <transition input="New" next="New" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="notifications@check-point.com.au" subject="Application [%AppNo%] Lodged on DOP Portal for Property: [%PropertyAddress%]" template="New App Notification - DOP.htm" />
+        </actions>
+      </transition>
+    </state>
+    <state name="New" IdleDays="15">
+      <transition input="Accept" next="Lodged" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Application [%AppNo%] Lodged. Property: [%PropertyAddress%]" template="App Lodged.htm">
+            <letters>
+              <template name="Notice application for a CDC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="apicall" addressee="Accept" selectAttachment="false" />
+        </actions>
+        <reminders>
+          <reminder content="Check all required info has been provided before lodge the application" />
+          <reminder content="Preview application form to ensure all details are correct" />
+        </reminders>
+      </transition>
+      <transition input="Cancel" next="Cancelled " selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="Return" selectAttachment="true" />
+        </actions>
+        <reminders>
+          <reminder content="Cancel the application?" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Lodged" IdleDays="3">
+      <transition input="Request More Info" next="More Info Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="More information required for your CDC application [%AppNo%]" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="apicall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - CDC.docx" RelatedDocType="" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Approve CDC" next="CDC Approved" selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="Determination" selectAttachment="true" />
+        </actions>
+        <reminders>
+          <reminder content="Preview CDC to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="AssignedSurveyor" selectAttachment="true" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Info Required" IdleDays="60">
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false" />
+      <transition input="Repeat More Info" next="More Info Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="More information required for your CDC application [%AppNo%]" template="More Info Required.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="apicall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - CDC.docx" RelatedDocType="" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Awaiting Information (CDC)" next="Awaiting Information (CDC)" selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="ProvideDevspec" selectAttachment="true" />
+        </actions>
+      </transition>
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+      <transition input="Approve CDC" next="CDC Approved" selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="Determination" selectAttachment="true" />
+        </actions>
+        <reminders>
+          <reminder content="Preview CDC to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="3">
+      <transition input="Request More Info" next="More Info Required" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="More information required for your Building Permit application [%AppNo%]" template="More Info Required.htm">
+            <letters>
+              <template name="More Info.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="apicall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - CDC.docx" RelatedDocType="" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Select more info items in the Additional Information section" />
+        </reminders>
+      </transition>
+      <transition input="Awaiting Information (CDC/CC)" next="Awaiting Information (CDC/CC)" selectAttachment="false" />
+      <transition input="Awaiting Information (OC)" next="Awaiting Information (OC)" selectAttachment="false" />
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+      <transition input="Approve CC" next="CC Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CC to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+      <transition input="Approve CDC" next="CDC Approved" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CDC to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Awaiting Information (CDC)" IdleDays="3">
+      <transition input="Approve CDC" next="CDC Approved" selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="Determination" selectAttachment="true" />
+        </actions>
+        <reminders>
+          <reminder content="Preview CDC to ensure all details are correct" />
+          <reminder content="Preview letters to applicant, owner and council" />
+        </reminders>
+      </transition>
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+    </state>
+    <state name="CDC Approved" IdleDays="15">
+      <transition input="Complete" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview finals to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Awaiting Payment" next="Awaiting Payment" selectAttachment="false" />
+    </state>
+    <state name="Awaiting Payment" IdleDays="15">
+      <transition input="Complete" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview finals to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Ready for Assessment" IdleDays="" />
+    <state name="Assessing" IdleDays="" />
+    <state name="Complete" IdleDays="" />
+    <state name="Cancelled" IdleDays="" />
+  </applicationType>
+  <applicationType name="OccupationCertificate" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="New" IdleDays="15">
+      <transition input="Lodged" next="Received" selectAttachment="false" />
+      <transition input="Awaiting Information (CDC/CC)" next="Awaiting Information (CDC/CC)" selectAttachment="false" />
+      <transition input="Awaiting Information (OC)" next="Awaiting Information (OC)" selectAttachment="false" />
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false">
+        <actions>
+          <action type="apicall" addressee="AssignedSurveyor" selectAttachment="true" />
+        </actions>
+      </transition>
+      <transition input="Cancel" next="Complete(Cancelled)" selectAttachment="false" />
+    </state>
+    <state name="Received" IdleDays="15">
+      <transition input="Accept Application" next="Allocation" selectAttachment="false" proceedWithOutAppNo="false">
+        <actions>
+          <action type="APICall" addressee="Accept" />
+        </actions>
+      </transition>
+      <transition input="Reject" next="Complete(Rejected)" selectAttachment="false" proceedWithOutAppNo="true">
+        <actions>
+          <action type="APICall" addressee="Return" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Allocation" IdleDays="3">
+      <transition input="Allocate to Officer" next="Under Assessment" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="New [%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for Property [%Property#Address#%] has been assigned to you." template="AssignedStaffCouncil.htm" />
+          <action type="APICall" addressee="Reassign" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Under Assessment" IdleDays="15">
+      <transition input="Request More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="APICall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - OC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false" proceedWithOutAppNo="false">
+        <actions>
+          <action type="APICall" addressee="Assessment" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Information Requested" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="APICall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - OC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="Additional Information received for [%Application#ApplicationType#%] Application Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIReceivedCouncil.htm" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="APICall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - OC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="Assessment" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Ready to Issue" IdleDays="15">
+      <transition input="Initiate Inspection" next="Inspection Initiated" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="InitiateInspection" />
+        </actions>
+      </transition>
+      <transition input="Issue" next="Complete" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="[%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for [%Property#Address#%] is Approved." template="AppDeterminedApplicant.htm" />
+          <action type="APICall" addressee="Determine" selectAttachment="true" />
+        </actions>
+      </transition>
+      <transition input="Refuse" next="Complete(Refused)" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="[%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for [%Property#Address#%] is Refused." template="AppDeterminedApplicant.htm">
+            <letters>
+              <template name="OccupationCertificate.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="APICall" addressee="Determine">
+            <letters>
+              <template name="OccupationCertificate.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+    </state>
+    <state name="Awaiting Payment" IdleDays="15">
+      <transition input="Issue CFI" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CFI to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+      <transition input="Issue Part/Interim OC" next="Part/Interim OC Approved" selectAttachment="false" />
+      <transition input="Issue Occu Permit" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview Occu permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Part/Interim OC Approved" IdleDays="15">
+      <transition input="Issue Occu Permit" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview Occu permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Awaiting Information (CDC/CC)" next="Awaiting Information (CDC/CC)" selectAttachment="false" />
+      <transition input="Awaiting Information (OC)" next="Awaiting Information (OC)" selectAttachment="false" />
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+    </state>
+    <state name="Inspection Initiated" IdleDays="15">
+      <transition input="Perform Inspection" next="Inspection Performed" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="PerformInspection" selectAttachment="true" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Inspection Performed" IdleDays="15">
+      <transition input="Complete Inspection" next="Ready to Issue" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="CompleteInspection" selectAttachment="true" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Complete" IdleDays="15" />
+    <state name="Complete(Cancelled)" IdleDays="15" />
+    <state name="Complete(Rejected)" IdleDays="15" />
+  </applicationType>
+  <applicationType name="ConstructionCertificate" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="New" IdleDays="15">
+      <transition input="Lodged" next="Received" selectAttachment="false" />
+      <transition input="Cancel" next="Complete(Cancelled)" selectAttachment="false" />
+    </state>
+    <state name="Received" IdleDays="15">
+      <transition input="Issue Quote" next="Quote Issued" selectAttachment="false" />
+      <transition input="Reject" next="Complete(Rejected)" selectAttachment="false" proceedWithOutAppNo="true">
+        <actions>
+          <action type="apicall" addressee="return" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Quote Issued" IdleDays="15">
+      <transition input="Accept Application" next="Allocation" selectAttachment="false" proceedWithOutAppNo="false">
+        <actions>
+          <action type="APICall" addressee="Accept" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Allocation" IdleDays="3">
+      <transition input="Allocate to Officer" next="Under Assessment" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="New [%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for Property [%Property#Address#%] has been assigned to you." template="AssignedStaffCouncil.htm" />
+          <action type="APICall" addressee="Reassign" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Under Assessment" IdleDays="15">
+      <transition input="Request More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="APICall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - CC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false" proceedWithOutAppNo="false">
+        <actions>
+          <action type="APICall" addressee="Assessment" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Information Requested" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="APICall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - CC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="Additional Information received for [%Application#ApplicationType#%] Application Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIReceivedCouncil.htm" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="APICall" addressee="ReqAddInfo">
+            <letters>
+              <template name="Additional information - CC.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="Assessment" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Ready to Issue" IdleDays="15">
+      <transition input="Initiate Inspection" next="Inspection Initiated" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="InitiateInspection" />
+        </actions>
+      </transition>
+      <transition input="Issue" next="Complete" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="[%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for [%Property#Address#%] is Approved." template="AppDeterminedApplicant.htm" />
+          <action type="APICall" addressee="Determine" selectAttachment="true" />
+        </actions>
+      </transition>
+      <transition input="Refuse" next="Complete(Refused)" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="[%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for [%Property#Address#%] is Refused." template="AppDeterminedApplicant.htm">
+            <letters>
+              <template name="OccupationCertificate.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="APICall" addressee="Determine">
+            <letters>
+              <template name="OccupationCertificate.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+    </state>
+    <state name="Awaiting Payment" IdleDays="15">
+      <transition input="Issue CFI" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CFI to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+      <transition input="Issue Part/Interim OC" next="Part/Interim OC Approved" selectAttachment="false" />
+      <transition input="Issue Occu Permit" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview Occu permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="CC Approved" IdleDays="15">
+      <transition input="Issue CFI" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview CFI to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+      <transition input="Awaiting Payment" next="Awaiting Payment" selectAttachment="false" />
+      <transition input="Awaiting Information (CDC/CC)" next="Awaiting Information (CDC/CC)" selectAttachment="false" />
+      <transition input="Awaiting Information (OC)" next="Awaiting Information (OC)" selectAttachment="false" />
+      <transition input="Ready for Assessment" next="Ready for Assessment" selectAttachment="false" />
+      <transition input="Assessing" next="Assessing" selectAttachment="false" />
+      <transition input="Issue Part/Interim OC" next="Part/Interim OC Approved" selectAttachment="false" />
+      <transition input="Issue Occu Permit" next="Complete" selectAttachment="false">
+        <reminders>
+          <reminder content="Preview Occu permit to ensure all details are correct" />
+          <reminder content="Preview letters to applicant and council" />
+        </reminders>
+      </transition>
+    </state>
+    <state name="Inspection Initiated" IdleDays="15">
+      <transition input="Perform Inspection" next="Inspection Performed" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="PerformInspection" selectAttachment="true" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Inspection Performed" IdleDays="15">
+      <transition input="Complete Inspection" next="Ready to Issue" selectAttachment="false">
+        <actions>
+          <action type="APICall" addressee="CompleteInspection" selectAttachment="true" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Complete" IdleDays="15" />
+    <state name="Complete(Cancelled)" IdleDays="15" />
+    <state name="Complete(Rejected)" IdleDays="15" />
+  </applicationType>
+  <applicationType name="PrincipalCertifierAppointment" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="New" IdleDays="15">
+      <transition input="Lodged" next="Received" selectAttachment="false" />
+      <transition input="Cancel" next="Complete(Cancelled)" selectAttachment="false" />
+    </state>
+    <state name="Received" IdleDays="15">
+      <transition input="Issue Quote" next="Quote Issued" selectAttachment="false" />
+      <transition input="Reject" next="Complete(Rejected)" selectAttachment="false" proceedWithOutAppNo="true" />
+    </state>
+    <state name="Quote Issued" IdleDays="15">
+      <transition input="Accept Application" next="Allocation" selectAttachment="false" proceedWithOutAppNo="false">
+        <actions>
+          <action type="APICall" addressee="Accept" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Allocation" IdleDays="3">
+      <transition input="Allocate to Officer" next="Under Assessment" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="New [%Application#ApplicationTypeName#%] Application [%Application#ApplicationNo#%] for Property [%Property#Address#%] has been assigned to you." template="AssignedStaffCouncil.htm" />
+        </actions>
+      </transition>
+    </state>
+    <state name="Under Assessment" IdleDays="15">
+      <transition input="Request More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationTypeName#%] Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false" proceedWithOutAppNo="false" />
+    </state>
+    <state name="More Information Requested" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationTypeName#%] Application Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="Additional Information received for [%Application#ApplicationTypeName#%] Application Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIReceivedCouncil.htm" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationTypeName#%] Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false" />
+    </state>
+    <state name="Ready to Issue" IdleDays="15">
+      <transition input="Initiate Inspection" next="Inspection Initiated" selectAttachment="false" />
+      <transition input="Issue" next="Complete" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="[%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for [%Property#Address#%] is Approved." template="AppDeterminedApplicant.htm" />
+          <action type="APICall" addressee="Determine" selectAttachment="true" />
+        </actions>
+      </transition>
+      <transition input="Refuse" next="Complete(Refused)" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="Applicant" subject="[%Application#ApplicationType#%] Application [%Application#ApplicationNo#%] for [%Property#Address#%] is Refused." template="AppDeterminedApplicant.htm">
+            <letters>
+              <template name="OccupationCertificate.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+          <action type="APICall" addressee="Determine">
+            <letters>
+              <template name="OccupationCertificate.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+      </transition>
+    </state>
+    <state name="Inspection Initiated" IdleDays="15">
+      <transition input="Perform Inspection" next="Inspection Performed" selectAttachment="false" />
+    </state>
+    <state name="Inspection Performed" IdleDays="15">
+      <transition input="Complete Inspection" next="Ready to Issue" selectAttachment="false" />
+    </state>
+    <state name="Complete" IdleDays="15" />
+    <state name="Complete(Cancelled)" IdleDays="15" />
+    <state name="Complete(Rejected)" IdleDays="15" />
+  </applicationType>
+  <applicationType name="ExemptDevelopment" initialStatus="New" EmailAdmin="yes" SMSAdmin="no" PreAppInitStatus="Pre App">
+    <state name="New" IdleDays="15">
+      <transition input="Lodged" next="Received" selectAttachment="false" />
+      <transition input="Cancel" next="Cancelled" selectAttachment="false" />
+    </state>
+    <state name="Received" IdleDays="15">
+      <transition input="Under Assessment" next="Under Assessment" selectAttachment="false" />
+    </state>
+    <state name="Under Assessment" IdleDays="15">
+      <transition input="Request More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationTypeName#%] Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false" proceedWithOutAppNo="false" />
+    </state>
+    <state name="More Information Requested" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationTypeName#%] Application Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="More Info Received" next="More Info Received" selectAttachment="false">
+        <actions>
+          <action type="email" addressee="AssignedStaff" subject="Additional Information received for [%Application#ApplicationTypeName#%] Application Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIReceivedCouncil.htm" />
+        </actions>
+      </transition>
+    </state>
+    <state name="More Info Received" IdleDays="15">
+      <transition input="Repeat More Info" next="More Information Requested" selectAttachment="true">
+        <actions>
+          <action type="email" addressee="Applicant" subject="Additional Information required for your [%Application#ApplicationTypeName#%] Application [%Application#ApplicationNo#%] associated with [%Property#Address#%]" template="RFIApplicant.htm">
+            <letters>
+              <template name="RFI.docx" saveToRelatedDoc="true" />
+            </letters>
+          </action>
+        </actions>
+        <reminders>
+          <reminder content="Before you proceed!" />
+          <reminder content="If you're requesting additional information - ensure that the 'Additional Information' field has been completed" />
+          <reminder content="It is a good idea to preview your letter to ensure that it is correct before sending it out" />
+        </reminders>
+      </transition>
+      <transition input="Assessment Completed" next="Ready to Issue" selectAttachment="false" />
+    </state>
+    <state name="Ready to Issue" IdleDays="15">
+      <transition input="Issue" next="Complete" selectAttachment="false" />
+    </state>
+    <state name="Complete" IdleDays="15" />
+    <state name="Cancelled" IdleDays="15" />
+    <state name="Rejected" IdleDays="15" />
+  </applicationType>
+</root>

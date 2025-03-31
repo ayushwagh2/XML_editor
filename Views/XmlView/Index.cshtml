@@ -1,0 +1,423 @@
+@{
+    ViewData["Title"] = "XML Viewer";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>XML Editor</h2>
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.Error
+                </div>
+            }
+            <div class="form-group">
+                <textarea id="xmlInput" class="form-control" rows="10" placeholder="XML content will be loaded here...">@(ViewBag.InitialXml ?? "")</textarea>
+            </div>
+            <div class="d-flex align-items-center mb-4 gap-3">
+                <div class="btn-group">
+                    <button id="loadXml" class="btn btn-primary">Reload XML</button>
+                    <button id="saveXml" class="btn btn-success" disabled>Save Changes</button>
+                </div>
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text">File Name</span>
+                    <input type="text" id="fileName" class="form-control" placeholder="Enter file name (optional)">
+                </div>
+            </div>
+            <div id="saveStatus" class="alert alert-success d-none mb-3">
+                XML file saved successfully!
+                <span id="savedFileName"></span>
+            </div>
+            <div id="xmlTree" class="border p-3"></div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .tree-node {
+            margin-left: 20px;
+        }
+
+        .node-content {
+            cursor: pointer;
+            padding: 2px 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .node-content:hover {
+            background-color: #f0f0f0;
+        }
+
+        .collapse-icon {
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            margin-right: 5px;
+        }
+
+        .node-name {
+            color: #800080;
+            font-weight: bold;
+        }
+
+        .node-value {
+            color: #000080;
+        }
+
+        .node-attribute {
+            color: #008080;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .edit-buttons {
+            margin-left: 10px;
+            display: none;
+        }
+
+        .node-content:hover .edit-buttons {
+            display: inline-block;
+        }
+
+        .edit-buttons button {
+            padding: 0 5px;
+            margin: 0 2px;
+            font-size: 12px;
+        }
+
+        .edit-form {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .edit-form input, .edit-form textarea {
+            margin-bottom: 10px;
+        }
+
+        #saveStatus {
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #saveStatus.fade-out {
+            opacity: 0;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        let currentXmlData = @(ViewBag.InitialData != null ? Html.Raw(Json.Serialize(ViewBag.InitialData)) : "null");
+
+        // Initialize the tree view if we have initial data
+        if (currentXmlData) {
+            const treeContainer = document.getElementById('xmlTree');
+            treeContainer.innerHTML = '';
+            treeContainer.appendChild(createNodeElement(currentXmlData));
+            document.getElementById('saveXml').disabled = false;
+        }
+
+        function showSaveStatus(fileName) {
+            const statusDiv = document.getElementById('saveStatus');
+            const fileNameSpan = document.getElementById('savedFileName');
+            fileNameSpan.textContent = ` (${fileName})`;
+            statusDiv.classList.remove('d-none');
+            
+            // Clear any existing timeout
+            if (window.saveStatusTimeout) {
+                clearTimeout(window.saveStatusTimeout);
+            }
+            
+            // Hide the status after 5 seconds
+            window.saveStatusTimeout = setTimeout(() => {
+                statusDiv.classList.add('fade-out');
+                setTimeout(() => {
+                    statusDiv.classList.add('d-none');
+                    statusDiv.classList.remove('fade-out');
+                }, 500);
+            }, 5000);
+        }
+
+        function createEditForm(node, callback) {
+            const form = document.createElement('div');
+            form.className = 'edit-form';
+
+            const nameInput = document.createElement('input');
+            nameInput.className = 'form-control mb-2';
+            nameInput.value = node.name;
+            nameInput.placeholder = 'Element Name';
+            form.appendChild(nameInput);
+
+            const valueInput = document.createElement('input');
+            valueInput.className = 'form-control mb-2';
+            valueInput.value = node.value || '';
+            valueInput.placeholder = 'Element Value';
+            form.appendChild(valueInput);
+
+            const attributesDiv = document.createElement('div');
+            attributesDiv.className = 'mb-2';
+            attributesDiv.innerHTML = '<h6>Attributes</h6>';
+            
+            const attributesList = document.createElement('div');
+            attributesList.id = 'attributesList';
+            
+            Object.entries(node.attributes || {}).forEach(([key, value]) => {
+                const attrRow = createAttributeRow(key, value);
+                attributesList.appendChild(attrRow);
+            });
+            
+            attributesDiv.appendChild(attributesList);
+            
+            const addAttrBtn = document.createElement('button');
+            addAttrBtn.className = 'btn btn-sm btn-outline-primary mt-2';
+            addAttrBtn.textContent = 'Add Attribute';
+            addAttrBtn.onclick = () => {
+                const attrRow = createAttributeRow('', '');
+                attributesList.appendChild(attrRow);
+            };
+            attributesDiv.appendChild(addAttrBtn);
+            
+            form.appendChild(attributesDiv);
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-success';
+            saveBtn.textContent = 'Save';
+            saveBtn.onclick = () => {
+                const attributes = {};
+                attributesList.querySelectorAll('.attribute-row').forEach(row => {
+                    const key = row.querySelector('.attr-key').value;
+                    const value = row.querySelector('.attr-value').value;
+                    if (key && value) {
+                        attributes[key] = value;
+                    }
+                });
+
+                callback({
+                    name: nameInput.value,
+                    value: valueInput.value || null,
+                    attributes: attributes
+                });
+            };
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = () => form.remove();
+
+            btnGroup.appendChild(saveBtn);
+            btnGroup.appendChild(cancelBtn);
+            form.appendChild(btnGroup);
+
+            return form;
+        }
+
+        function createAttributeRow(key, value) {
+            const row = document.createElement('div');
+            row.className = 'attribute-row input-group mb-2';
+            
+            const keyInput = document.createElement('input');
+            keyInput.className = 'form-control attr-key';
+            keyInput.value = key;
+            keyInput.placeholder = 'Name';
+            
+            const valueInput = document.createElement('input');
+            valueInput.className = 'form-control attr-value';
+            valueInput.value = value;
+            valueInput.placeholder = 'Value';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.onclick = () => row.remove();
+            
+            row.appendChild(keyInput);
+            row.appendChild(valueInput);
+            row.appendChild(deleteBtn);
+            
+            return row;
+        }
+
+        function createNodeElement(node, parentNode = null) {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'tree-node';
+            nodeDiv.dataset.node = JSON.stringify(node);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'node-content';
+
+            const collapseIcon = document.createElement('span');
+            collapseIcon.className = 'collapse-icon';
+            collapseIcon.textContent = node.hasChildren ? '▼' : '•';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'node-name';
+            nameSpan.textContent = node.name;
+
+            contentDiv.appendChild(collapseIcon);
+            contentDiv.appendChild(nameSpan);
+
+            if (Object.keys(node.attributes).length > 0) {
+                const attributesSpan = document.createElement('span');
+                attributesSpan.className = 'node-attribute';
+                const attrs = Object.entries(node.attributes)
+                    .map(([key, value]) => ` ${key}="${value}"`)
+                    .join('');
+                attributesSpan.textContent = attrs;
+                contentDiv.appendChild(attributesSpan);
+            }
+
+            if (node.value) {
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'node-value';
+                valueSpan.textContent = `: ${node.value}`;
+                contentDiv.appendChild(valueSpan);
+            }
+
+            const editButtons = document.createElement('div');
+            editButtons.className = 'edit-buttons btn-group btn-group-sm';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-outline-primary';
+            editBtn.textContent = 'Edit';
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                const form = createEditForm(node, (updatedData) => {
+                    node.name = updatedData.name;
+                    node.value = updatedData.value;
+                    node.attributes = updatedData.attributes;
+                    const newNode = createNodeElement(node, parentNode);
+                    nodeDiv.parentNode.replaceChild(newNode, nodeDiv);
+                    document.getElementById('saveXml').disabled = false;
+                });
+                nodeDiv.insertBefore(form, nodeDiv.childNodes[1]);
+            };
+
+            const addChildBtn = document.createElement('button');
+            addChildBtn.className = 'btn btn-outline-success';
+            addChildBtn.textContent = 'Add Child';
+            addChildBtn.onclick = (e) => {
+                e.stopPropagation();
+                const newNode = {
+                    name: 'new-element',
+                    value: '',
+                    attributes: {},
+                    children: []
+                };
+                node.children = node.children || [];
+                node.children.push(newNode);
+                if (childrenDiv) {
+                    childrenDiv.appendChild(createNodeElement(newNode, node));
+                } else {
+                    const newChildrenDiv = document.createElement('div');
+                    newChildrenDiv.className = 'children';
+                    newChildrenDiv.appendChild(createNodeElement(newNode, node));
+                    nodeDiv.appendChild(newChildrenDiv);
+                }
+                document.getElementById('saveXml').disabled = false;
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (parentNode) {
+                    const index = parentNode.children.indexOf(node);
+                    if (index > -1) {
+                        parentNode.children.splice(index, 1);
+                        nodeDiv.remove();
+                        document.getElementById('saveXml').disabled = false;
+                    }
+                }
+            };
+
+            editButtons.appendChild(editBtn);
+            editButtons.appendChild(addChildBtn);
+            if (parentNode) {
+                editButtons.appendChild(deleteBtn);
+            }
+            contentDiv.appendChild(editButtons);
+
+            nodeDiv.appendChild(contentDiv);
+
+            let childrenDiv = null;
+            if (node.children && node.children.length > 0) {
+                childrenDiv = document.createElement('div');
+                childrenDiv.className = 'children';
+                node.children.forEach(child => {
+                    childrenDiv.appendChild(createNodeElement(child, node));
+                });
+                nodeDiv.appendChild(childrenDiv);
+
+                contentDiv.addEventListener('click', () => {
+                    childrenDiv.classList.toggle('hidden');
+                    collapseIcon.textContent = childrenDiv.classList.contains('hidden') ? '▶' : '▼';
+                });
+            }
+
+            return nodeDiv;
+        }
+
+        document.getElementById('loadXml').addEventListener('click', async () => {
+            const xmlContent = document.getElementById('xmlInput').value;
+            try {
+                const response = await fetch('/XmlView/LoadXml', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(xmlContent)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load XML');
+                }
+
+                currentXmlData = await response.json();
+                const treeContainer = document.getElementById('xmlTree');
+                treeContainer.innerHTML = '';
+                treeContainer.appendChild(createNodeElement(currentXmlData));
+                document.getElementById('saveXml').disabled = false;
+            } catch (error) {
+                alert('Error loading XML: ' + error.message);
+            }
+        });
+
+        document.getElementById('saveXml').addEventListener('click', async () => {
+            try {
+                const fileName = document.getElementById('fileName').value;
+                const response = await fetch('/XmlView/SaveXml', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        node: currentXmlData,
+                        fileName: fileName
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save XML');
+                }
+
+                const result = await response.json();
+                document.getElementById('xmlInput').value = result.xml;
+                document.getElementById('saveXml').disabled = true;
+                showSaveStatus(result.fileName);
+            } catch (error) {
+                alert('Error saving XML: ' + error.message);
+            }
+        });
+    </script>
+} 
